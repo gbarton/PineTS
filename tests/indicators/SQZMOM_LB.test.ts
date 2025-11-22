@@ -7,7 +7,7 @@ import { Provider } from '@pinets/marketData/Provider.class';
 describe('Indicators', () => {
     it('Squeeze Momentum Indicator [LazyBear]', async () => {
         //const pineTS = new PineTS(Provider.Binance, 'SUIUSDT', '1d', 1000, 0, new Date('Dec 25 2024').getTime() - 1);
-        const pineTS = new PineTS(Provider.Binance, 'BTCUSDT', 'D', null, new Date('2025-10-29').getTime(), new Date('2025-11-20').getTime());
+        const pineTS = new PineTS(Provider.Binance, 'BTCUSDT', 'D', null, new Date('2025-01-29').getTime(), new Date('2025-11-20').getTime());
 
         const { result, plots } = await pineTS.run((context: Context) => {
             // This is a port of "Squeeze Momentum Indicator" indicator by LazyBear
@@ -46,21 +46,32 @@ describe('Indicators', () => {
             plotchar(upperBB, 'upperBB', { display: 'data_window' });
             plotchar(upperKC, 'upperKC', { display: 'data_window' });
 
-            console.log('>>> lowerBB: ', lowerBB);
-            console.log('>>> lowerKC: ', lowerKC);
-            console.log('>>> upperBB: ', upperBB);
-            console.log('>>> upperKC: ', upperKC);
+            // console.log('>>> lowerBB: ', lowerBB);
+            // console.log('>>> lowerKC: ', lowerKC);
+            // console.log('>>> upperBB: ', upperBB);
+            // console.log('>>> upperKC: ', upperKC);
 
             const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
             const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
             const noSqz = sqzOn == false && sqzOff == false;
 
-            const val = ta.linreg(
-                source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)),
-                lengthKC,
-                0
-            );
-            console.log('>>> val: ', source);
+            const ta_lowest = ta.lowest(low, lengthKC);
+            const ta_highest = ta.highest(high, lengthKC);
+            const ta_sma = ta.sma(close, lengthKC);
+            const ta_avg = math.avg(math.avg(ta_highest, ta_lowest), ta_sma);
+            const val = source - ta_avg;
+
+            plotchar(ta_lowest, 'ta_lowest');
+            //console.log('>>> ', ta_lowest + ' | ' + ta_highest + ' | ' + ta_sma + ' | ' + ta_avg + ' | ' + val);
+
+            //console.log('>>> val: ', source, ta_avg, val);
+
+            // const val = ta.linreg(
+            //     source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)),
+            //     lengthKC,
+            //     0
+            // );
+            //console.log('>>> val: ', source);
 
             const iff_1 = val > nz(val[1]) ? color.lime : color.green;
             const iff_2 = val < nz(val[1]) ? color.red : color.maroon;
@@ -94,7 +105,9 @@ describe('Indicators', () => {
         //console.log('>>> upperBBPlot: ', upperBBPlot);
         //console.log('>>> upperKCPlot: ', upperKCPlot);
 
-        const plotdata = plots['val']?.data;
+        const plotdata = plots['val']?.data
+            //filter everything before 2025-10-29
+            .filter((e) => e.time >= new Date('2025-10-29').getTime());
 
         plotdata.forEach((e) => {
             e.time = new Date(e.time).toISOString().slice(0, -1) + '-00:00';
