@@ -87,6 +87,13 @@ export const ASTFactory = {
         return this.createCallExpression(initMethod, args);
     },
 
+    // Create $.get(source, index)
+    createGetCall(source: any, index: any): any {
+        const getMethod = this.createMemberExpression(this.createContextIdentifier(), this.createIdentifier('get'), false);
+        const indexNode = typeof index === 'number' ? this.createLiteral(index) : index;
+        return this.createCallExpression(getMethod, [source, indexNode]);
+    },
+
     // Create $.math.__eq(left, right)
     createMathEqCall(left: any, right: any): any {
         const mathObj = this.createMemberExpression(this.createContextIdentifier(), this.createIdentifier('math'), false);
