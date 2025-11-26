@@ -155,7 +155,7 @@ export class BinanceProvider implements IProvider {
             const cacheParams = { tickerId, timeframe, limit, sDate, eDate };
             const cachedData = this.cacheManager.get(cacheParams);
             if (cachedData) {
-                console.log('cache hit', tickerId, timeframe, limit, sDate, eDate);
+                //console.log('cache hit', tickerId, timeframe, limit, sDate, eDate);
                 return cachedData;
             }
 

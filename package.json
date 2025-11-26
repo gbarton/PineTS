@@ -10,6 +10,9 @@
     "type": "module",
     "scripts": {
         "test": "cross-env TEST_ENV=true vitest --reporter verbose",
+        "test:coverage": "cross-env TEST_ENV=true vitest run --coverage",
+        "test:coverage:badge": "cross-env TEST_ENV=true vitest run --coverage --exclude tests/_local/**",
+        "badge": "npm run test:coverage:badge && node scripts/generate-coverage-badge.js",
         "generate:ta-index": "node scripts/generate-ta-index.js",
         "generate:math-index": "node scripts/generate-math-index.js",
         "generate:array-index": "node scripts/generate-array-index.js",
@@ -37,6 +40,7 @@
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^16.0.0",
         "@vitest/coverage-v8": "^2.0.0",
+        "badgen": "^3.2.3",
         "cross-env": "^7.0.3",
         "knip": "^5.43.6",
         "rollup": "^2.79.2",
