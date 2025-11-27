@@ -123,4 +123,18 @@ export const ASTFactory = {
             },
         };
     },
+
+    createVariableDeclaration(name: string, init: any): any {
+        return {
+            type: 'VariableDeclaration',
+            kind: 'const',
+            declarations: [
+                {
+                    type: 'VariableDeclarator',
+                    id: this.createIdentifier(name),
+                    init,
+                },
+            ],
+        };
+    },
 };

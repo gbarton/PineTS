@@ -101,13 +101,29 @@ export function transformIdentifier(node: any, scopeManager: ScopeManager): void
             node.parent.callee.property.name === 'param';
 
         const isInit = node.parent && node.parent.type === 'AssignmentExpression' && node.parent.left === node;
-        // Check if this identifier is an argument to a namespace function
-        const isNamespaceFunctionArg =
-            node.parent &&
-            node.parent.type === 'CallExpression' &&
-            node.parent.callee &&
-            node.parent.callee.type === 'MemberExpression' &&
-            scopeManager.isContextBound(node.parent.callee.object.name);
+
+        // Check if this identifier is an argument to a function where we should pass the Series object
+        let isSeriesFunctionArg = false;
+        if (node.parent && node.parent.type === 'CallExpression' && node.parent.arguments.includes(node)) {
+            const callee = node.parent.callee;
+
+            // Check for context methods $.get, $.set, $.init, $.param
+            const isContextMethod =
+                callee.type === 'MemberExpression' &&
+                callee.object &&
+                callee.object.name === CONTEXT_NAME &&
+                ['get', 'set', 'init', 'param'].includes(callee.property.name);
+
+            if (isContextMethod) {
+                const argIndex = node.parent.arguments.indexOf(node);
+                if (argIndex === 0) {
+                    isSeriesFunctionArg = true;
+                }
+            } else {
+                // For all other functions (including namespace and user-defined), pass Series
+                isSeriesFunctionArg = true;
+            }
+        }
 
         // Check if this identifier is part of an array access
         const isArrayAccess = node.parent && node.parent.type === 'MemberExpression' && node.parent.computed;
@@ -127,11 +143,20 @@ export function transformIdentifier(node: any, scopeManager: ScopeManager): void
         // Check if this identifier is a function being called
         const isFunctionCall = node.parent && node.parent.type === 'CallExpression' && node.parent.callee === node;
 
-        if (isNamespaceMember || isParamCall || isNamespaceFunctionArg || isArrayIndexInNamespaceCall || isFunctionCall) {
+        // Check if parent node is already a member expression with computed property (array access)
+        const hasArrayAccess = node.parent && node.parent.type === 'MemberExpression' && node.parent.computed && node.parent.object === node;
+
+        if (isNamespaceMember || isParamCall || isSeriesFunctionArg || isArrayIndexInNamespaceCall || isFunctionCall) {
             // For function calls, we should just use the original name without scoping
             if (isFunctionCall) {
                 return;
             }
+
+            // For local series variables (hoisted params), don't rename or wrap if they are args to a namespace function
+            if (scopeManager.isLocalSeriesVar(node.name)) {
+                return;
+            }
+
             // Don't add [0] for namespace function arguments or array indices
             const [scopedName, kind] = scopeManager.getVariable(node.name);
             const memberExpr = ASTFactory.createContextVariableReference(kind, scopedName);
@@ -139,11 +164,20 @@ export function transformIdentifier(node: any, scopeManager: ScopeManager): void
             return;
         }
 
+        // For local series variables used elsewhere (e.g. in plot() or binary ops), we MIGHT need to wrap them
+        // But we definitely shouldn't rename them to $.let...
+        if (scopeManager.isLocalSeriesVar(node.name)) {
+            // If it's not an array access, we need to wrap it in $.get(node, 0) to get the value
+            if (!hasArrayAccess && !isArrayAccess) {
+                const memberExpr = ASTFactory.createIdentifier(node.name);
+                const accessExpr = ASTFactory.createGetCall(memberExpr, 0);
+                Object.assign(node, accessExpr);
+            }
+            return;
+        }
+
         const [scopedName, kind] = scopeManager.getVariable(node.name);
         const memberExpr = ASTFactory.createContextVariableReference(kind, scopedName);
-
-        // Check if parent node is already a member expression with computed property (array access)
-        const hasArrayAccess = node.parent && node.parent.type === 'MemberExpression' && node.parent.computed && node.parent.object === node;
 
         if (!hasArrayAccess && !isArrayAccess) {
             // Add [0] array access via $.get() if not already present and not part of array access
@@ -234,6 +268,10 @@ function transformIdentifierForParam(node: any, scopeManager: ScopeManager): any
         }
         // If it's a nested function parameter or other context-bound variable, return as is
         if (scopeManager.isContextBound(node.name)) {
+            return node;
+        }
+        // If it's a local series variable (hoisted), return as is
+        if (scopeManager.isLocalSeriesVar(node.name)) {
             return node;
         }
         // Otherwise transform with $.let prefix
@@ -399,14 +437,24 @@ function getParamFromConditionalExpression(node: any, scopeManager: ScopeManager
     );
 
     const memberExpr = ASTFactory.createMemberExpression(ASTFactory.createIdentifier(namespace), ASTFactory.createIdentifier('param'));
-
-    return {
+    const nextParamId = scopeManager.generateParamId();
+    const paramCall = {
         type: 'CallExpression',
         callee: memberExpr,
-        arguments: [node, UNDEFINED_ARG, scopeManager.nextParamIdArg],
+        arguments: [node, UNDEFINED_ARG, { type: 'Identifier', name: `'${nextParamId}'` }],
         _transformed: true,
         _isParamCall: true,
     };
+
+    if (!scopeManager.shouldSuppressHoisting()) {
+        const tempVarName = nextParamId;
+        scopeManager.addLocalSeriesVar(tempVarName);
+        const variableDecl = ASTFactory.createVariableDeclaration(tempVarName, paramCall);
+        scopeManager.addHoistedStatement(variableDecl);
+        return ASTFactory.createIdentifier(tempVarName);
+    }
+
+    return paramCall;
 }
 
 function getParamFromUnaryExpression(node: any, scopeManager: ScopeManager, namespace: string): any {
@@ -461,13 +509,24 @@ export function transformFunctionArgument(arg: any, namespace: string, scopeMana
 
         const memberExpr = ASTFactory.createMemberExpression(ASTFactory.createIdentifier(namespace), ASTFactory.createIdentifier('param'));
 
-        return {
+        const nextParamId = scopeManager.generateParamId();
+        const paramCall = {
             type: 'CallExpression',
             callee: memberExpr,
-            arguments: [transformedObject, transformedProperty, scopeManager.nextParamIdArg],
+            arguments: [transformedObject, transformedProperty, { type: 'Identifier', name: `'${nextParamId}'` }],
             _transformed: true,
             _isParamCall: true,
         };
+
+        if (!scopeManager.shouldSuppressHoisting()) {
+            const tempVarName = nextParamId;
+            scopeManager.addLocalSeriesVar(tempVarName); // Mark as local series
+            const variableDecl = ASTFactory.createVariableDeclaration(tempVarName, paramCall);
+            scopeManager.addHoistedStatement(variableDecl);
+            return ASTFactory.createIdentifier(tempVarName);
+        }
+
+        return paramCall;
     }
 
     if (arg.type === 'ObjectExpression') {
@@ -502,13 +561,24 @@ export function transformFunctionArgument(arg: any, namespace: string, scopeMana
         // If it's a context-bound variable (like a nested function parameter), use it directly
         if (scopeManager.isContextBound(arg.name) && !scopeManager.isRootParam(arg.name)) {
             const memberExpr = ASTFactory.createMemberExpression(ASTFactory.createIdentifier(namespace), ASTFactory.createIdentifier('param'));
-            return {
+            const nextParamId = scopeManager.generateParamId();
+            const paramCall = {
                 type: 'CallExpression',
                 callee: memberExpr,
-                arguments: [arg, UNDEFINED_ARG, scopeManager.nextParamIdArg],
+                arguments: [arg, UNDEFINED_ARG, { type: 'Identifier', name: `'${nextParamId}'` }],
                 _transformed: true,
                 _isParamCall: true,
             };
+
+            if (!scopeManager.shouldSuppressHoisting()) {
+                const tempVarName = nextParamId;
+                scopeManager.addLocalSeriesVar(tempVarName); // Prevent transformation to $.let.pX
+                const variableDecl = ASTFactory.createVariableDeclaration(tempVarName, paramCall);
+                scopeManager.addHoistedStatement(variableDecl);
+                return ASTFactory.createIdentifier(tempVarName);
+            }
+
+            return paramCall;
         }
     }
 
@@ -520,13 +590,26 @@ export function transformFunctionArgument(arg: any, namespace: string, scopeMana
 
     const memberExpr = ASTFactory.createMemberExpression(ASTFactory.createIdentifier(namespace), ASTFactory.createIdentifier('param'));
 
-    return {
+    const transformedArg = arg.type === 'Identifier' ? transformIdentifierForParam(arg, scopeManager) : arg;
+    const nextParamId = scopeManager.generateParamId();
+
+    const paramCall = {
         type: 'CallExpression',
         callee: memberExpr,
-        arguments: [arg.type === 'Identifier' ? transformIdentifierForParam(arg, scopeManager) : arg, UNDEFINED_ARG, scopeManager.nextParamIdArg],
+        arguments: [transformedArg, UNDEFINED_ARG, { type: 'Identifier', name: `'${nextParamId}'` }],
         _transformed: true,
         _isParamCall: true,
     };
+
+    if (!scopeManager.shouldSuppressHoisting()) {
+        const tempVarName = nextParamId;
+        scopeManager.addLocalSeriesVar(tempVarName);
+        const variableDecl = ASTFactory.createVariableDeclaration(tempVarName, paramCall);
+        scopeManager.addHoistedStatement(variableDecl);
+        return ASTFactory.createIdentifier(tempVarName);
+    }
+
+    return paramCall;
 }
 
 export function transformCallExpression(node: any, scopeManager: ScopeManager, namespace?: string): void {
@@ -551,17 +634,32 @@ export function transformCallExpression(node: any, scopeManager: ScopeManager, n
 
         const namespace = node.callee.object.name;
         // Transform arguments using the namespace's param
-        node.arguments = node.arguments.map((arg: any) => {
+        const newArgs: any[] = [];
+        node.arguments.forEach((arg: any) => {
             // If argument is already a param call, don't wrap it again
             if (arg._isParamCall) {
-                return arg;
+                newArgs.push(arg);
+                return;
             }
-            return transformFunctionArgument(arg, namespace, scopeManager);
+            newArgs.push(transformFunctionArgument(arg, namespace, scopeManager));
         });
+        node.arguments = newArgs;
 
         // Inject unique call ID for TA functions to enable proper state management
         if (namespace === 'ta') {
             node.arguments.push(scopeManager.getNextTACallId());
+        }
+
+        if (!scopeManager.shouldSuppressHoisting()) {
+            const tempVarName = scopeManager.generateTempVar();
+            scopeManager.addLocalSeriesVar(tempVarName); // Mark as local series
+            const variableDecl = ASTFactory.createVariableDeclaration(tempVarName, Object.assign({}, node));
+            scopeManager.addHoistedStatement(variableDecl);
+
+            // Replace the CallExpression with the temp variable identifier
+            Object.assign(node, ASTFactory.createIdentifier(tempVarName));
+            // The original node is modified in place, so we don't need to return anything
+            return;
         }
 
         node._transformed = true;
@@ -581,45 +679,49 @@ export function transformCallExpression(node: any, scopeManager: ScopeManager, n
 
     // Transform any nested call expressions in the arguments
     node.arguments.forEach((arg: any) => {
-        walk.recursive(arg, scopeManager, {
-            Identifier(node: any, state: any, c: any) {
-                node.parent = state.parent;
-                transformIdentifier(node, scopeManager);
-                const isBinaryOperation = node.parent && node.parent.type === 'BinaryExpression';
-                const isConditional = node.parent && node.parent.type === 'ConditionalExpression';
+        walk.recursive(
+            arg,
+            { parent: node },
+            {
+                Identifier(node: any, state: any, c: any) {
+                    node.parent = state.parent;
+                    transformIdentifier(node, scopeManager);
+                    const isBinaryOperation = node.parent && node.parent.type === 'BinaryExpression';
+                    const isConditional = node.parent && node.parent.type === 'ConditionalExpression';
 
-                if (isConditional || isBinaryOperation) {
-                    if (node.type === 'MemberExpression') {
-                        transformArrayIndex(node, scopeManager);
-                    } else if (node.type === 'Identifier') {
-                        // Skip addArrayAccess if the identifier is already inside a $.get call
-                        const isGetCall =
-                            node.parent &&
-                            node.parent.type === 'CallExpression' &&
-                            node.parent.callee &&
-                            node.parent.callee.object &&
-                            node.parent.callee.object.name === CONTEXT_NAME &&
-                            node.parent.callee.property.name === 'get';
+                    if (isConditional || isBinaryOperation) {
+                        if (node.type === 'MemberExpression') {
+                            transformArrayIndex(node, scopeManager);
+                        } else if (node.type === 'Identifier') {
+                            // Skip addArrayAccess if the identifier is already inside a $.get call
+                            const isGetCall =
+                                node.parent &&
+                                node.parent.type === 'CallExpression' &&
+                                node.parent.callee &&
+                                node.parent.callee.object &&
+                                node.parent.callee.object.name === CONTEXT_NAME &&
+                                node.parent.callee.property.name === 'get';
 
-                        if (!isGetCall) {
-                            addArrayAccess(node, scopeManager);
+                            if (!isGetCall) {
+                                addArrayAccess(node, scopeManager);
+                            }
                         }
                     }
-                }
-            },
-            CallExpression(node: any, state: any, c: any) {
-                if (!node._transformed) {
-                    // First transform the call expression itself
-                    transformCallExpression(node, state);
-                }
-            },
-            MemberExpression(node: any, state: any, c: any) {
-                transformMemberExpression(node, '', scopeManager);
-                // Then continue with object transformation
-                if (node.object) {
-                    c(node.object, { parent: node, inNamespaceCall: state.inNamespaceCall });
-                }
-            },
-        });
+                },
+                CallExpression(node: any, state: any, c: any) {
+                    if (!node._transformed) {
+                        // First transform the call expression itself
+                        transformCallExpression(node, scopeManager);
+                    }
+                },
+                MemberExpression(node: any, state: any, c: any) {
+                    transformMemberExpression(node, '', scopeManager);
+                    // Then continue with object transformation
+                    if (node.object) {
+                        c(node.object, { parent: node });
+                    }
+                },
+            }
+        );
     });
 }

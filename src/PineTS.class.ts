@@ -37,6 +37,11 @@ export class PineTS {
 
     private _ready = false;
 
+    private _debugSettings = {
+        ln: false,
+        debug: false,
+    };
+
     private _transpiledCode: Function | String = null;
     public get transpiledCode() {
         return this._transpiledCode;
@@ -83,6 +88,11 @@ export class PineTS {
                 resolve(true);
             });
         });
+    }
+
+    public setDebugSettings({ ln, debug }: { ln: boolean; debug: boolean }) {
+        this._debugSettings.ln = ln;
+        this._debugSettings.debug = debug;
     }
 
     private async loadMarketData(source: IProvider | any[], tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number) {
@@ -428,7 +438,7 @@ export class PineTS {
      */
     private _transpileCode(pineTSCode: Function | String): Function {
         const transformer = transpile.bind(this);
-        return transformer(pineTSCode);
+        return transformer(pineTSCode, this._debugSettings);
     }
 
     /**

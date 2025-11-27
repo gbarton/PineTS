@@ -8,6 +8,7 @@ export class ScopeManager {
     private contextBoundVars: Set<string> = new Set();
     private arrayPatternElements: Set<string> = new Set();
     private rootParams: Set<string> = new Set();
+    private localSeriesVars: Set<string> = new Set();
     private varKinds: Map<string, string> = new Map();
     private loopVars: Set<string> = new Set();
     private loopVarNames: Map<string, string> = new Map(); // Map original names to transformed names
@@ -15,6 +16,8 @@ export class ScopeManager {
     private cacheIdCounter: number = 0;
     private tempVarCounter: number = 0;
     private taCallIdCounter: number = 0;
+    private hoistingStack: any[][] = [];
+    private suppressHoisting: boolean = false;
 
     public get nextParamIdArg(): any {
         return {
@@ -60,6 +63,14 @@ export class ScopeManager {
 
     getCurrentScopeCount(): number {
         return this.scopeCounts.get(this.getCurrentScopeType()) || 1;
+    }
+
+    addLocalSeriesVar(name: string): void {
+        this.localSeriesVars.add(name);
+    }
+
+    isLocalSeriesVar(name: string): boolean {
+        return this.localSeriesVars.has(name);
     }
 
     addContextBoundVar(name: string, isRootParam: boolean = false): void {
@@ -151,6 +162,34 @@ export class ScopeManager {
 
     public generateTempVar(): string {
         return `temp_${++this.tempVarCounter}`;
+    }
+
+    // Hoisting Logic
+    enterHoistingScope(): void {
+        this.hoistingStack.push([]);
+    }
+
+    exitHoistingScope(): any[] {
+        return this.hoistingStack.pop() || [];
+    }
+
+    addHoistedStatement(stmt: any): void {
+        if (this.hoistingStack.length > 0 && !this.suppressHoisting) {
+            this.hoistingStack[this.hoistingStack.length - 1].push(stmt);
+        }
+    }
+
+    setSuppressHoisting(suppress: boolean): void {
+        this.suppressHoisting = suppress;
+    }
+
+    shouldSuppressHoisting(): boolean {
+        return this.suppressHoisting;
+    }
+
+    // Param ID Generator Helper (for hoisting)
+    public generateParamId(): string {
+        return `p${this.paramIdCounter++}`;
     }
 }
 

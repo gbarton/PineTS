@@ -90,6 +90,8 @@ export function transformAssignmentExpression(node: any, scopeManager: ScopeMana
                 // First transform the call expression itself
                 transformCallExpression(node, scopeManager);
 
+                if (node.type !== 'CallExpression') return;
+
                 // Then transform its arguments with the correct context
                 node.arguments.forEach((arg: any) => c(arg, { parent: node, inNamespaceCall: isNamespaceCall || state.inNamespaceCall }));
             },
@@ -252,6 +254,9 @@ export function transformVariableDeclaration(varNode: any, scopeManager: ScopeMa
                                 }
                             });
                             transformCallExpression(node, scopeManager);
+
+                            if (node.type !== 'CallExpression') return;
+
                             // Continue walking the arguments
                             node.arguments.forEach((arg) => c(arg, { parent: node }));
                         },
@@ -378,6 +383,7 @@ export function transformVariableDeclaration(varNode: any, scopeManager: ScopeMa
 }
 
 export function transformForStatement(node: any, scopeManager: ScopeManager, c: any): void {
+    scopeManager.setSuppressHoisting(true);
     // Handle initialization
     if (node.init && node.init.type === 'VariableDeclaration') {
         // Keep the original loop variable name
@@ -456,18 +462,21 @@ export function transformForStatement(node: any, scopeManager: ScopeManager, c: 
     }
 
     // Transform the loop body
+    scopeManager.setSuppressHoisting(false);
     scopeManager.pushScope('for');
     c(node.body, scopeManager);
     scopeManager.popScope();
 }
 
 export function transformWhileStatement(node: any, scopeManager: ScopeManager, c: any): void {
+    scopeManager.setSuppressHoisting(true);
     // Transform the test condition of the while loop
     walk.simple(node.test, {
         Identifier(idNode: any) {
             transformIdentifier(idNode, scopeManager);
         },
     });
+    scopeManager.setSuppressHoisting(false);
 
     // Process the body of the while loop
     scopeManager.pushScope('whl');
