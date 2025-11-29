@@ -537,14 +537,29 @@ export function transformReturnStatement(node: any, scopeManager: ScopeManager):
                 if (element.type === 'Identifier') {
                     // Skip transformation if it's a context-bound variable
                     if (scopeManager.isContextBound(element.name) && !scopeManager.isRootParam(element.name)) {
-                        // Only add [0] if it's not already an array access
-                        return ASTFactory.createArrayAccess(element, 0);
+                        // Use $.get(element, 0) instead of element[0] for context-bound variables
+                        return ASTFactory.createGetCall(element, 0);
                     }
 
                     // Transform non-context-bound variables
                     const [scopedName, kind] = scopeManager.getVariable(element.name);
                     return ASTFactory.createContextVariableAccess0(kind, scopedName);
                 } else if (element.type === 'MemberExpression') {
+                    // Check if this is a context variable reference ($.const.xxx, $.let.xxx, etc.)
+                    const isContextVarRef =
+                        element.object &&
+                        element.object.type === 'MemberExpression' &&
+                        element.object.object &&
+                        element.object.object.type === 'Identifier' &&
+                        element.object.object.name === '$' &&
+                        element.object.property &&
+                        ['const', 'let', 'var', 'params'].includes(element.object.property.name);
+
+                    if (isContextVarRef) {
+                        // Use $.get($.const.xxx, 0) instead of $.const.xxx[0]
+                        return ASTFactory.createGetCall(element, 0);
+                    }
+
                     // If it's already a member expression (array access), leave it as is
                     if (
                         element.computed &&

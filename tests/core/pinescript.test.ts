@@ -115,6 +115,63 @@ describe('PineScript Language', () => {
         expect(context.result).toEqual(expected);
     });
 
+    it('tuples', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'W', null, new Date('2024-01-01').getTime(), new Date('2025-11-10').getTime());
+
+        const { result, plots } = await pineTS.run(async (context) => {
+            const { close, open } = context.data;
+            const { plot, plotchar, request, ta } = context.pine;
+
+            function foo() {
+                const oo = open;
+                const cc = close;
+                return [oo, cc];
+            }
+
+            const [res, data] = foo();
+
+            plotchar(res, '_plotchar');
+
+            return {
+                res,
+                data,
+            };
+        });
+
+        let plotdata = plots['_plotchar']?.data;
+        const sDate = new Date('2025-08-01').getTime();
+        const eDate = new Date('2025-11-10').getTime();
+        plotdata = plotdata.filter((e) => new Date(e.time).getTime() >= sDate && new Date(e.time).getTime() <= eDate);
+
+        plotdata.forEach((e) => {
+            e.time = new Date(e.time).toISOString().slice(0, -1) + '-00:00';
+
+            delete e.options;
+        });
+        const plotdata_str = plotdata.map((e) => `[${e.time}]: ${e.value}`).join('\n');
+
+        const expected_plot = `[2025-08-04T00:00:00.000-00:00]: 114228.32
+[2025-08-11T00:00:00.000-00:00]: 119327.09
+[2025-08-18T00:00:00.000-00:00]: 117489.99
+[2025-08-25T00:00:00.000-00:00]: 113491.2
+[2025-09-01T00:00:00.000-00:00]: 108270.37
+[2025-09-08T00:00:00.000-00:00]: 111140.01
+[2025-09-15T00:00:00.000-00:00]: 115342.79
+[2025-09-22T00:00:00.000-00:00]: 115314.25
+[2025-09-29T00:00:00.000-00:00]: 112224.95
+[2025-10-06T00:00:00.000-00:00]: 123529.91
+[2025-10-13T00:00:00.000-00:00]: 115073.27
+[2025-10-20T00:00:00.000-00:00]: 108689.01
+[2025-10-27T00:00:00.000-00:00]: 114571.34
+[2025-11-03T00:00:00.000-00:00]: 110550.87
+[2025-11-10T00:00:00.000-00:00]: 104710.21`;
+
+        console.log('Expected plot:', expected_plot);
+        console.log('Actual plot:', plotdata_str);
+
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
+
     it('Variable Type Inference', async () => {
         const pineTS = new PineTS(Provider.Binance, 'BTCUSDT', '4H', 20, new Date('Sep 20 2025').getTime(), new Date('Nov 25 2025').getTime());
         const context = await pineTS.run(async (context) => {

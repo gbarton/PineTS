@@ -40,10 +40,10 @@ export const ASTFactory = {
         return this.createMemberExpression(this.createMemberExpression(context, kindId, false), nameId, false);
     },
 
-    // Create $.kind.name[0]
+    // Create $.get($.kind.name, 0)
     createContextVariableAccess0(kind: string, name: string): any {
         const varRef = this.createContextVariableReference(kind, name);
-        return this.createArrayAccess(varRef, 0);
+        return this.createGetCall(varRef, 0);
     },
 
     createArrayAccess(object: any, index: any): any {

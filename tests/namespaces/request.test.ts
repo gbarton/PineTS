@@ -47,6 +47,50 @@ describe('Request ', () => {
 
         expect(plotdata_str.trim()).toEqual(expected_plot.trim());
     });
+
+    it('request.security expression higher timeframe lookahead=false', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'D', null, new Date('2024-10-01').getTime(), new Date('2025-10-10').getTime());
+
+        const { result, plots } = await pineTS.run(async (context) => {
+            const { close, open } = context.data;
+            const { plot, plotchar, request, ta } = context.pine;
+
+            const res = await request.security('BTCUSDC', 'W', ta.sma(close, 14), false, false);
+
+            plotchar(res, '_plotchar');
+
+            return {
+                res,
+            };
+        });
+
+        let plotdata = plots['_plotchar']?.data;
+        const sDate = new Date('2025-10-01').getTime();
+        const eDate = new Date('2025-10-10').getTime();
+        plotdata = plotdata.filter((e) => new Date(e.time).getTime() >= sDate && new Date(e.time).getTime() <= eDate);
+        plotdata.forEach((e) => {
+            e.time = new Date(e.time).toISOString().slice(0, -1) + '-00:00';
+
+            delete e.options;
+        });
+        const plotdata_str = plotdata.map((e) => `[${e.time}]: ${e.value}`).join('\n');
+
+        const expected_plot = `[2025-10-01T00:00:00.000-00:00]: 114312.2842857143
+[2025-10-02T00:00:00.000-00:00]: 114312.2842857143
+[2025-10-03T00:00:00.000-00:00]: 114312.2842857143
+[2025-10-04T00:00:00.000-00:00]: 114312.2842857143
+[2025-10-05T00:00:00.000-00:00]: 115394.2778571428
+[2025-10-06T00:00:00.000-00:00]: 115394.2778571428
+[2025-10-07T00:00:00.000-00:00]: 115394.2778571428
+[2025-10-08T00:00:00.000-00:00]: 115394.2778571428
+[2025-10-09T00:00:00.000-00:00]: 115394.2778571428
+[2025-10-10T00:00:00.000-00:00]: 115394.2778571428`;
+
+        console.log('Expected plot:', expected_plot);
+        console.log('Actual plot:', plotdata_str);
+
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
     it('request.security higher timeframe lookahead=true', async () => {
         const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'D', null, new Date('2025-10-01').getTime(), new Date('2025-10-10').getTime());
 
@@ -259,6 +303,64 @@ describe('Request ', () => {
 [2025-10-27T00:00:00.000-00:00]: 110550.87
 [2025-11-03T00:00:00.000-00:00]: 104710.22
 [2025-11-10T00:00:00.000-00:00]: 106036.45`;
+
+        console.log('Expected plot:', expected_plot);
+        console.log('Actual plot:', plotdata_str);
+
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
+
+    it('request.security expression lower timeframe lookahead=false', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'W', null, new Date('2024-01-01').getTime(), new Date('2025-11-10').getTime());
+
+        const { result, plots } = await pineTS.run(async (context) => {
+            const { close, open } = context.data;
+            const { plot, plotchar, request, ta } = context.pine;
+
+            //const res = await request.security('BTCUSDC', '240', ta.sma(close, 14), false, false);
+
+            function foo() {
+                const oo = open;
+                const cc = close;
+                return [oo, cc];
+            }
+
+            const [res, data] = foo();
+
+            plotchar(res, '_plotchar');
+
+            return {
+                res,
+            };
+        });
+
+        let plotdata = plots['_plotchar']?.data;
+        const sDate = new Date('2025-08-01').getTime();
+        const eDate = new Date('2025-11-10').getTime();
+        plotdata = plotdata.filter((e) => new Date(e.time).getTime() >= sDate && new Date(e.time).getTime() <= eDate);
+
+        plotdata.forEach((e) => {
+            e.time = new Date(e.time).toISOString().slice(0, -1) + '-00:00';
+
+            delete e.options;
+        });
+        const plotdata_str = plotdata.map((e) => `[${e.time}]: ${e.value}`).join('\n');
+
+        const expected_plot = `[2025-08-04T00:00:00.000-00:00]: 117503.9371428573
+[2025-08-11T00:00:00.000-00:00]: 117700.247857143
+[2025-08-18T00:00:00.000-00:00]: 115035.0685714287
+[2025-08-25T00:00:00.000-00:00]: 108663.1900000001
+[2025-09-01T00:00:00.000-00:00]: 110879.487857143
+[2025-09-08T00:00:00.000-00:00]: 115883.8678571429
+[2025-09-15T00:00:00.000-00:00]: 115704.3492857144
+[2025-09-22T00:00:00.000-00:00]: 109812.3207142859
+[2025-09-29T00:00:00.000-00:00]: 122824.1707142858
+[2025-10-06T00:00:00.000-00:00]: 112576.9100000001
+[2025-10-13T00:00:00.000-00:00]: 107396.0142857144
+[2025-10-20T00:00:00.000-00:00]: 112058.2221428573
+[2025-10-27T00:00:00.000-00:00]: 110233.457857143
+[2025-11-03T00:00:00.000-00:00]: 102743.162857143
+[2025-11-10T00:00:00.000-00:00]: 95456.6457142859`;
 
         console.log('Expected plot:', expected_plot);
         console.log('Actual plot:', plotdata_str);
