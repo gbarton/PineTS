@@ -2,14 +2,16 @@
 // This file is auto-generated. Do not edit manually.
 // Run: npm run generate:ta-index
 
-import { obv } from './getters/obv';
-import { tr } from './getters/tr';
+
 
 import { alma } from './methods/alma';
 import { atr } from './methods/atr';
+import { bb } from './methods/bb';
+import { cci } from './methods/cci';
 import { change } from './methods/change';
 import { crossover } from './methods/crossover';
 import { crossunder } from './methods/crossunder';
+import { cum } from './methods/cum';
 import { dev } from './methods/dev';
 import { ema } from './methods/ema';
 import { highest } from './methods/highest';
@@ -18,7 +20,9 @@ import { linreg } from './methods/linreg';
 import { lowest } from './methods/lowest';
 import { macd } from './methods/macd';
 import { median } from './methods/median';
+import { mfi } from './methods/mfi';
 import { mom } from './methods/mom';
+import { obv } from './methods/obv';
 import { param } from './methods/param';
 import { pivothigh } from './methods/pivothigh';
 import { pivotlow } from './methods/pivotlow';
@@ -27,24 +31,28 @@ import { roc } from './methods/roc';
 import { rsi } from './methods/rsi';
 import { sma } from './methods/sma';
 import { stdev } from './methods/stdev';
+import { stoch } from './methods/stoch';
 import { supertrend } from './methods/supertrend';
 import { swma } from './methods/swma';
+import { tr } from './methods/tr';
 import { variance } from './methods/variance';
 import { vwap } from './methods/vwap';
 import { vwma } from './methods/vwma';
 import { wma } from './methods/wma';
 
 const getters = {
-  obv,
-  tr
+
 };
 
 const methods = {
   alma,
   atr,
+  bb,
+  cci,
   change,
   crossover,
   crossunder,
+  cum,
   dev,
   ema,
   highest,
@@ -53,7 +61,9 @@ const methods = {
   lowest,
   macd,
   median,
+  mfi,
   mom,
+  obv,
   param,
   pivothigh,
   pivotlow,
@@ -62,8 +72,10 @@ const methods = {
   rsi,
   sma,
   stdev,
+  stoch,
   supertrend,
   swma,
+  tr,
   variance,
   vwap,
   vwma,
@@ -71,14 +83,16 @@ const methods = {
 };
 
 export class TechnicalAnalysis {
-  readonly obv: ReturnType<ReturnType<typeof getters.obv>>;
-  readonly tr: ReturnType<ReturnType<typeof getters.tr>>;
+
 
   alma: ReturnType<typeof methods.alma>;
   atr: ReturnType<typeof methods.atr>;
+  bb: ReturnType<typeof methods.bb>;
+  cci: ReturnType<typeof methods.cci>;
   change: ReturnType<typeof methods.change>;
   crossover: ReturnType<typeof methods.crossover>;
   crossunder: ReturnType<typeof methods.crossunder>;
+  cum: ReturnType<typeof methods.cum>;
   dev: ReturnType<typeof methods.dev>;
   ema: ReturnType<typeof methods.ema>;
   highest: ReturnType<typeof methods.highest>;
@@ -87,7 +101,9 @@ export class TechnicalAnalysis {
   lowest: ReturnType<typeof methods.lowest>;
   macd: ReturnType<typeof methods.macd>;
   median: ReturnType<typeof methods.median>;
+  mfi: ReturnType<typeof methods.mfi>;
   mom: ReturnType<typeof methods.mom>;
+  obv: ReturnType<typeof methods.obv>;
   param: ReturnType<typeof methods.param>;
   pivothigh: ReturnType<typeof methods.pivothigh>;
   pivotlow: ReturnType<typeof methods.pivotlow>;
@@ -96,8 +112,10 @@ export class TechnicalAnalysis {
   rsi: ReturnType<typeof methods.rsi>;
   sma: ReturnType<typeof methods.sma>;
   stdev: ReturnType<typeof methods.stdev>;
+  stoch: ReturnType<typeof methods.stoch>;
   supertrend: ReturnType<typeof methods.supertrend>;
   swma: ReturnType<typeof methods.swma>;
+  tr: ReturnType<typeof methods.tr>;
   variance: ReturnType<typeof methods.variance>;
   vwap: ReturnType<typeof methods.vwap>;
   vwma: ReturnType<typeof methods.vwma>;

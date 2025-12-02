@@ -10,6 +10,7 @@
 -   Support for handling raw .pine.ts indicator code (without context function wrapper)
 -   Ability to show original code lines in transpiled code as comments for debugging
 -   Comprehensive unit tests for `request.security()` functionality
+-   harmonization of Series logic accross the codebase
 
 ### Changed
 

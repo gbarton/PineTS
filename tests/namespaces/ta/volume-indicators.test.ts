@@ -22,9 +22,6 @@ describe('Technical Analysis - Volume Indicators', () => {
         let obv_plotdata = plots['obv']?.data;
         const startDate = new Date('2019-05-20').getTime();
         const endDate = new Date('2019-09-16').getTime();
-        //macdLine_plotdata = macdLine_plotdata.filter((e) => e.time >= startDate && e.time <= endDate);
-        //signalLine_plotdata = signalLine_plotdata.filter((e) => e.time >= startDate && e.time <= endDate);
-        //histLine_plotdata = histLine_plotdata.filter((e) => e.time >= startDate && e.time <= endDate);
 
         let plotdata_str = '';
         for (let i = 0; i < obv_plotdata.length; i++) {

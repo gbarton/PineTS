@@ -32,9 +32,9 @@ All functions listed below are verified to exist in Pine Script v5.
 | `ta.mom()`    | ✅     | Momentum                              |
 | `ta.roc()`    | ✅     | Rate of Change                        |
 | `ta.macd()`   | ✅     | Moving Average Convergence Divergence |
-| `ta.stoch()`  | ⬜     | Stochastic Oscillator                 |
-| `ta.cci()`    | ⬜     | Commodity Channel Index               |
-| `ta.mfi()`    | ⬜     | Money Flow Index                      |
+| `ta.stoch()`  | ✅     | Stochastic Oscillator                 |
+| `ta.cci()`    | ✅     | Commodity Channel Index               |
+| `ta.mfi()`    | ✅     | Money Flow Index                      |
 | `ta.cmo()`    | ⬜     | Chande Momentum Oscillator            |
 | `ta.cog()`    | ⬜     | Center of Gravity                     |
 | `ta.tsi()`    | ⬜     | True Strength Index                   |
@@ -50,7 +50,7 @@ All functions listed below are verified to exist in Pine Script v5.
 | `ta.dev()`      | ✅     | Mean Absolute Deviation |
 | `ta.tr`         | ✔️     | True Range (variable)   |
 | `ta.tr()`       | ✔️     | True Range (function)   |
-| `ta.bb()`       | ⬜     | Bollinger Bands         |
+| `ta.bb()`       | ✅     | Bollinger Bands         |
 | `ta.bbw()`      | ⬜     | Bollinger Bands Width   |
 | `ta.kc()`       | ⬜     | Keltner Channels        |
 | `ta.kcw()`      | ⬜     | Keltner Channels Width  |
@@ -73,7 +73,7 @@ All functions listed below are verified to exist in Pine Script v5.
 
 | Function     | Status | Description                                            |
 | ------------ | ------ | ------------------------------------------------------ |
-| `ta.obv`     | ⬜     | On-Balance Volume (variable)                           |
+| `ta.obv`     | ✅     | On-Balance Volume (variable)                           |
 | `ta.pvt`     | ⬜     | Price-Volume Trend (variable)                          |
 | `ta.wad`     | ⬜     | Williams Accumulation/Distribution (variable)          |
 | `ta.wvad`    | ⬜     | Williams Variable Accumulation/Distribution (variable) |
@@ -111,13 +111,7 @@ All functions listed below are verified to exist in Pine Script v5.
 | ---------------- | ------ | ------------------------ |
 | `ta.valuewhen()` | ⬜     | Value When Condition Met |
 | `ta.barssince()` | ⬜     | Bars Since Condition     |
-| `ta.cum()`       | ⬜     | Cumulative Sum           |
-
-### Legend
-
--   ✅ Fully implemented and tested
--   ✔️ Implemented (may need more testing)
--   ⬜ Not yet implemented
+| `ta.cum()`       | ✅     | Cumulative Sum           |
 
 ### Notes
 
