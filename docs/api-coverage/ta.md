@@ -35,10 +35,10 @@ All functions listed below are verified to exist in Pine Script v5.
 | `ta.stoch()`  | ✅     | Stochastic Oscillator                 |
 | `ta.cci()`    | ✅     | Commodity Channel Index               |
 | `ta.mfi()`    | ✅     | Money Flow Index                      |
-| `ta.cmo()`    | ⬜     | Chande Momentum Oscillator            |
-| `ta.cog()`    | ⬜     | Center of Gravity                     |
-| `ta.tsi()`    | ⬜     | True Strength Index                   |
-| `ta.wpr()`    | ⬜     | Williams %R                           |
+| `ta.cmo()`    | ✅     | Chande Momentum Oscillator            |
+| `ta.cog()`    | ✅     | Center of Gravity                     |
+| `ta.tsi()`    | ✅     | True Strength Index                   |
+| `ta.wpr()`    | ✅     | Williams %R                           |
 
 ### Volatility & Range
 

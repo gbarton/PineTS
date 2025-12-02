@@ -330,4 +330,224 @@ describe('Technical Analysis - Oscillators & Momentum', () => {
         console.log('plotdata_str', plotdata_str);
         expect(plotdata_str.trim()).toEqual(expected_plot.trim());
     });
+
+    it('CMO - Chande Momentum Oscillator', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'W', null, new Date('2018-12-10').getTime(), new Date('2020-01-27').getTime());
+
+        const sourceCode = (context) => {
+            const { close, high, low, volume } = context.data;
+            const { ta, plotchar, math } = context.pine;
+
+            const res = ta.cmo(close, 28);
+            plotchar(res, '_plot');
+
+            return { res };
+        };
+
+        const { result, plots } = await pineTS.run(sourceCode);
+
+        let _plotdata = plots['_plot']?.data;
+        const startDate = new Date('2019-05-20').getTime();
+        const endDate = new Date('2019-09-16').getTime();
+
+        let plotdata_str = '';
+        for (let i = 0; i < _plotdata.length; i++) {
+            const time = _plotdata[i].time;
+            if (time < startDate || time > endDate) {
+                continue;
+            }
+
+            const str_time = new Date(time).toISOString().slice(0, -1) + '-00:00';
+            const res = _plotdata[i].value;
+            plotdata_str += `[${str_time}]: ${res}\n`;
+        }
+
+        const expected_plot = `[2019-05-20T00:00:00.000-00:00]: NaN
+[2019-05-27T00:00:00.000-00:00]: NaN
+[2019-06-03T00:00:00.000-00:00]: NaN
+[2019-06-10T00:00:00.000-00:00]: NaN
+[2019-06-17T00:00:00.000-00:00]: NaN
+[2019-06-24T00:00:00.000-00:00]: 63.3317171134
+[2019-07-01T00:00:00.000-00:00]: 63.2627470492
+[2019-07-08T00:00:00.000-00:00]: 48.6581089706
+[2019-07-15T00:00:00.000-00:00]: 49.400983315
+[2019-07-22T00:00:00.000-00:00]: 43.7168991645
+[2019-07-29T00:00:00.000-00:00]: 48.948751729
+[2019-08-05T00:00:00.000-00:00]: 50.8219817935
+[2019-08-12T00:00:00.000-00:00]: 40.9388458532
+[2019-08-19T00:00:00.000-00:00]: 38.5908388697
+[2019-08-26T00:00:00.000-00:00]: 35.7252213583
+[2019-09-02T00:00:00.000-00:00]: 37.7095049372
+[2019-09-09T00:00:00.000-00:00]: 36.8411551125
+[2019-09-16T00:00:00.000-00:00]: 34.2323777774`;
+
+        console.log('expected_plot', expected_plot);
+        console.log('plotdata_str', plotdata_str);
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
+
+    it('COG - Center of Gravity', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'W', null, new Date('2018-12-10').getTime(), new Date('2020-01-27').getTime());
+
+        const sourceCode = (context) => {
+            const { close, high, low, volume } = context.data;
+            const { ta, plotchar, math } = context.pine;
+
+            const res = ta.cog(close, 28);
+            plotchar(res, '_plot');
+
+            return { res };
+        };
+
+        const { result, plots } = await pineTS.run(sourceCode);
+
+        let _plotdata = plots['_plot']?.data;
+        const startDate = new Date('2019-05-20').getTime();
+        const endDate = new Date('2019-09-16').getTime();
+
+        let plotdata_str = '';
+        for (let i = 0; i < _plotdata.length; i++) {
+            const time = _plotdata[i].time;
+            if (time < startDate || time > endDate) {
+                continue;
+            }
+
+            const str_time = new Date(time).toISOString().slice(0, -1) + '-00:00';
+            const res = _plotdata[i].value;
+            plotdata_str += `[${str_time}]: ${res}\n`;
+        }
+
+        const expected_plot = `[2019-05-20T00:00:00.000-00:00]: NaN
+[2019-05-27T00:00:00.000-00:00]: NaN
+[2019-06-03T00:00:00.000-00:00]: NaN
+[2019-06-10T00:00:00.000-00:00]: NaN
+[2019-06-17T00:00:00.000-00:00]: -11.67132368
+[2019-06-24T00:00:00.000-00:00]: -11.5166107443
+[2019-07-01T00:00:00.000-00:00]: -11.2937463858
+[2019-07-08T00:00:00.000-00:00]: -11.2279164001
+[2019-07-15T00:00:00.000-00:00]: -11.1572489377
+[2019-07-22T00:00:00.000-00:00]: -11.239637216
+[2019-07-29T00:00:00.000-00:00]: -11.2672181067
+[2019-08-05T00:00:00.000-00:00]: -11.3013740007
+[2019-08-12T00:00:00.000-00:00]: -11.4449658192
+[2019-08-19T00:00:00.000-00:00]: -11.6013816208
+[2019-08-26T00:00:00.000-00:00]: -11.7992153057
+[2019-09-02T00:00:00.000-00:00]: -11.9749162693
+[2019-09-09T00:00:00.000-00:00]: -12.1689865261
+[2019-09-16T00:00:00.000-00:00]: -12.3860823107`;
+
+        console.log('expected_plot', expected_plot);
+        console.log('plotdata_str', plotdata_str);
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
+
+    it('TSI - True Strength Index', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'W', null, new Date('2018-12-10').getTime(), new Date('2020-01-27').getTime());
+
+        const sourceCode = (context) => {
+            const { close, high, low, volume } = context.data;
+            const { ta, plotchar, math } = context.pine;
+
+            const res = ta.tsi(close, 9, 18);
+            plotchar(res, '_plot');
+
+            return { res };
+        };
+
+        const { result, plots } = await pineTS.run(sourceCode);
+
+        let _plotdata = plots['_plot']?.data;
+        const startDate = new Date('2019-05-20').getTime();
+        const endDate = new Date('2019-09-16').getTime();
+
+        let plotdata_str = '';
+        for (let i = 0; i < _plotdata.length; i++) {
+            const time = _plotdata[i].time;
+            if (time < startDate || time > endDate) {
+                continue;
+            }
+
+            const str_time = new Date(time).toISOString().slice(0, -1) + '-00:00';
+            const res = _plotdata[i].value;
+            plotdata_str += `[${str_time}]: ${res}\n`;
+        }
+
+        const expected_plot = `[2019-05-20T00:00:00.000-00:00]: NaN
+[2019-05-27T00:00:00.000-00:00]: NaN
+[2019-06-03T00:00:00.000-00:00]: NaN
+[2019-06-10T00:00:00.000-00:00]: 0.6496654844
+[2019-06-17T00:00:00.000-00:00]: 0.6561238889
+[2019-06-24T00:00:00.000-00:00]: 0.6525462641
+[2019-07-01T00:00:00.000-00:00]: 0.6607935498
+[2019-07-08T00:00:00.000-00:00]: 0.5838493495
+[2019-07-15T00:00:00.000-00:00]: 0.541369031
+[2019-07-22T00:00:00.000-00:00]: 0.4576142002
+[2019-07-29T00:00:00.000-00:00]: 0.4292336162
+[2019-08-05T00:00:00.000-00:00]: 0.420926635
+[2019-08-12T00:00:00.000-00:00]: 0.3634406995
+[2019-08-19T00:00:00.000-00:00]: 0.3173667252
+[2019-08-26T00:00:00.000-00:00]: 0.2702080502
+[2019-09-02T00:00:00.000-00:00]: 0.2501959257
+[2019-09-09T00:00:00.000-00:00]: 0.2324156416
+[2019-09-16T00:00:00.000-00:00]: 0.2080344498`;
+
+        console.log('expected_plot', expected_plot);
+        console.log('plotdata_str', plotdata_str);
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
+
+    it('WPR - Williams %R', async () => {
+        const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'W', null, new Date('2018-12-10').getTime(), new Date('2020-01-27').getTime());
+
+        const sourceCode = (context) => {
+            const { close, high, low, volume } = context.data;
+            const { ta, plotchar, math } = context.pine;
+
+            const res = ta.wpr(14);
+            plotchar(res, '_plot');
+
+            return { res };
+        };
+
+        const { result, plots } = await pineTS.run(sourceCode);
+
+        let _plotdata = plots['_plot']?.data;
+        const startDate = new Date('2019-05-20').getTime();
+        const endDate = new Date('2019-09-16').getTime();
+
+        let plotdata_str = '';
+        for (let i = 0; i < _plotdata.length; i++) {
+            const time = _plotdata[i].time;
+            if (time < startDate || time > endDate) {
+                continue;
+            }
+
+            const str_time = new Date(time).toISOString().slice(0, -1) + '-00:00';
+            const res = _plotdata[i].value;
+            plotdata_str += `[${str_time}]: ${res}\n`;
+        }
+
+        const expected_plot = `[2019-05-20T00:00:00.000-00:00]: -1.041535782
+[2019-05-27T00:00:00.000-00:00]: -6.3393309098
+[2019-06-03T00:00:00.000-00:00]: -26.7375507193
+[2019-06-10T00:00:00.000-00:00]: -7.112030098
+[2019-06-17T00:00:00.000-00:00]: -5.9599528857
+[2019-06-24T00:00:00.000-00:00]: -31.1450270264
+[2019-07-01T00:00:00.000-00:00]: -24.2872222709
+[2019-07-08T00:00:00.000-00:00]: -40.6728132576
+[2019-07-15T00:00:00.000-00:00]: -36.1542741327
+[2019-07-22T00:00:00.000-00:00]: -47.7931663333
+[2019-07-29T00:00:00.000-00:00]: -32.803494778
+[2019-08-05T00:00:00.000-00:00]: -28.0105680253
+[2019-08-12T00:00:00.000-00:00]: -50.5148503574
+[2019-08-19T00:00:00.000-00:00]: -58.0399831237
+[2019-08-26T00:00:00.000-00:00]: -63.9220887998
+[2019-09-02T00:00:00.000-00:00]: -53.9628939424
+[2019-09-09T00:00:00.000-00:00]: -55.9840821947
+[2019-09-16T00:00:00.000-00:00]: -77.9276673062`;
+
+        console.log('expected_plot', expected_plot);
+        console.log('plotdata_str', plotdata_str);
+        expect(plotdata_str.trim()).toEqual(expected_plot.trim());
+    });
 });
