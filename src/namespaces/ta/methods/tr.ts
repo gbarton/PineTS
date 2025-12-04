@@ -3,15 +3,21 @@
 import { Series } from '../../../Series';
 
 export function tr(context: any) {
-    return (handle_na?: any) => {
+    return (handle_na?: boolean, _callId?: string) => {
         // True Range calculation
         // TR = max(high - low, abs(high - close[1]), abs(low - close[1]))
         // handle_na: if true, returns high - low when close[1] is NaN (default behavior)
         //            if false, returns NaN when close[1] is NaN
-        
+
         // Default to true to maintain backward compatibility with the getter behavior
-        const handleNa = handle_na !== undefined ? Series.from(handle_na).get(0) : true;
-        
+        let handleNa = true;
+        if (typeof handle_na === 'string') {
+            _callId = handle_na;
+        } else if (handle_na !== undefined) {
+            handleNa = Series.from(handle_na).get(0);
+        }
+        //const handleNa = handle_na !== undefined ? Series.from(handle_na).get(0) : true;
+
         const high0 = context.get(context.data.high, 0);
         const low0 = context.get(context.data.low, 0);
         const close1 = context.get(context.data.close, 1);
@@ -25,4 +31,3 @@ export function tr(context: any) {
         return val;
     };
 }
-

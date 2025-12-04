@@ -89,14 +89,13 @@ All functions listed below are verified to exist in Pine Script v5.
 | `ta.highest()`                         | ✅     | Highest Value             |
 | `ta.lowest()`                          | ✅     | Lowest Value              |
 | `ta.median()`                          | ✅     | Median Value              |
-| `ta.mode()`                            | ⬜     | Mode Value                |
-| `ta.highestbars()`                     | ⬜     | Bars Since Highest        |
-| `ta.lowestbars()`                      | ⬜     | Bars Since Lowest         |
-| `ta.percentrank()`                     | ⬜     | Percentile Rank           |
-| `ta.percentile_linear_interpolation()` | ⬜     | Percentile (Linear)       |
-| `ta.percentile_nearest_rank()`         | ⬜     | Percentile (Nearest Rank) |
-| `ta.correlation()`                     | ⬜     | Correlation Coefficient   |
-| `ta.covariance()`                      | ⬜     | Covariance                |
+| `ta.mode()`                            | ✅     | Mode Value                |
+| `ta.highestbars()`                     | ✅     | Bars Since Highest        |
+| `ta.lowestbars()`                      | ✅     | Bars Since Lowest         |
+| `ta.percentrank()`                     | ✅     | Percentile Rank           |
+| `ta.percentile_linear_interpolation()` | ✅     | Percentile (Linear)       |
+| `ta.percentile_nearest_rank()`         | ✅     | Percentile (Nearest Rank) |
+| `ta.correlation()`                     | ✅     | Correlation Coefficient   |
 
 ### Support & Resistance
 
@@ -110,7 +109,7 @@ All functions listed below are verified to exist in Pine Script v5.
 | Function         | Status | Description              |
 | ---------------- | ------ | ------------------------ |
 | `ta.valuewhen()` | ⬜     | Value When Condition Met |
-| `ta.barssince()` | ⬜     | Bars Since Condition     |
+| `ta.barssince()` | ✅     | Bars Since Condition     |
 | `ta.cum()`       | ✅     | Cumulative Sum           |
 
 ### Notes
