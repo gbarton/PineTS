@@ -47,4 +47,3 @@ export function stdev(context: any) {
         return context.precision(stdev);
     };
 }
-
